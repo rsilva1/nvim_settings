@@ -14,7 +14,7 @@ return {
 
     cmp.setup({
       sources = {
-        { name = "nvim-lsp" },
+        { name = "nvim_lsp" },
         { name = "path" },
         { name = "buffer" },
       },
