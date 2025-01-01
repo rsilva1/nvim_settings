@@ -30,21 +30,39 @@ vim.opt.colorcolumn = "80"
 
 vim.g.mapleader = " "
 
+-- Syntax of Jenkinsfile
+vim.api.nvim_create_autocmd("BufRead", {
+  pattern = {
+    "*Jenkinsfile",
+    "Jenkinsfile*",
+    "*JenkinsFile",
+    "JenkinsFile*",
+  },
+  callback = function(event)
+    local opts = {buf = vim.api.nvim_get_current_buf() }
+    vim.api.nvim_set_option_value("syntax", "groovy", opts)
+  end,
+})
 
+-- Syntax of curl files
+vim.api.nvim_create_autocmd("BufRead", {
+  pattern = {
+    "*.curl",
+  },
+  callback = function(event)
+    local opts = {buf = vim.api.nvim_get_current_buf() }
+    vim.api.nvim_set_option_value("syntax", "zsh", opts)
+  end,
+})
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+-- Syntax of mustache files
+vim.api.nvim_create_autocmd("BufRead", {
+  pattern = {
+    "*.html.mustache",
+  },
+  callback = function(event)
+    local opts = {buf = vim.api.nvim_get_current_buf() }
+    vim.api.nvim_set_option_value("filetype", "html", opts)
+    vim.api.nvim_set_option_value("syntax", "html", opts)
+  end,
+})

@@ -34,11 +34,13 @@ return {
         end
       })
 
+      --[[
       vim.api.nvim_create_autocmd("BufWritePre", {
         callback = function(event)
           vim.lsp.buf.format({ buffer = event.buf, async = false })
         end
       })
+      --]]
 
       -- ts organize imports
       vim.api.nvim_create_augroup("AutoFormatting", {})
@@ -47,12 +49,14 @@ return {
         group = "AutoFormatting",
         callback = function()
           -- organize imports
+          --[[
           vim.lsp.buf.execute_command({
             command = "_typescript.organizeImports",
             arguments = {vim.api.nvim_buf_get_name(0)},
             title = ""
           })
           vim.lsp.buf.format({ async = false })
+          --]]
         end,
       })
 
@@ -74,7 +78,7 @@ return {
       require("mason").setup({})
       require("mason-lspconfig").setup({
         ensure_installed = {
-          "eslint",
+          -- "eslint",
           "tsserver",
           "rust_analyzer",
           "dockerls",
@@ -82,16 +86,24 @@ return {
           "tailwindcss",
           "gopls",
           "golangci_lint_ls",
+          "ruby_lsp",
         },
         handlers = {
           default_setup,
           tsserver = function()
+            local util = require('lspconfig.util')
+
             require('lspconfig').tsserver.setup({
+              root_dir = util.root_pattern('.git')(fname),
               capabilities = lsp_capabilities,
               init_options = { 
                 preferences = { 
-                  importModuleSpecifierPreference = "shortest", 
-                  importModuleSpecifierEnding = "minimal", 
+                  -- quotePreference = 'single',
+                  quotePreference = 'double',
+                  -- absolute breaks nest+jest (https://stackoverflow.com/questions/56703570/unable-to-run-tests-because-nest-cannot-find-a-module)
+                  importModuleSpecifier = "relative",
+                  importModuleSpecifierPreference = "relative",
+                  importModuleSpecifierEnding = "auto",
                 },
               },
               commands = {
@@ -102,6 +114,30 @@ return {
               },
             })
           end,
+          -- I'm still not 100% sure if this is solving my old issue of rust_analyzer not running on unlinked files (e.g. test scripts)
+          rust_analyzer = function()
+            require('lspconfig').rust_analyzer.setup({
+              cargo = {
+                features = "all"
+              }
+            })
+          end,
+        },
+      })
+
+      -- borders
+      vim.lsp.handlers['textDocument/hover'] = vim.lsp.with(
+        vim.lsp.handlers.hover,
+        {border = 'rounded'}
+      )
+
+      vim.lsp.handlers['textDocument/signatureHelp'] = vim.lsp.with(
+        vim.lsp.handlers.signature_help,
+        {border = 'rounded'}
+      )
+      vim.diagnostic.config({
+        float = {
+          border = 'rounded',
         },
       })
     end
