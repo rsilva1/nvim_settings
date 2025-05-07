@@ -43,22 +43,23 @@ return {
       --]]
 
       -- ts organize imports
+      --[[
       vim.api.nvim_create_augroup("AutoFormatting", {})
       vim.api.nvim_create_autocmd("BufWritePre", {
-        pattern = "*.ts",
+        pattern = "*.tsx?",
         group = "AutoFormatting",
         callback = function()
           -- organize imports
-          --[[
+          
           vim.lsp.buf.execute_command({
             command = "_typescript.organizeImports",
             arguments = {vim.api.nvim_buf_get_name(0)},
             title = ""
           })
           vim.lsp.buf.format({ async = false })
-          --]]
         end,
       })
+      --]]
 
       local default_setup = function(server)
         require('lspconfig')[server].setup({
@@ -78,8 +79,8 @@ return {
       require("mason").setup({})
       require("mason-lspconfig").setup({
         ensure_installed = {
-          -- "eslint",
-          "tsserver",
+          "eslint",
+          "ts_ls",
           "rust_analyzer",
           "dockerls",
           "docker_compose_language_service",
@@ -87,23 +88,36 @@ return {
           "gopls",
           "golangci_lint_ls",
           "ruby_lsp",
+          "yamlls",
+          "graphql"
         },
         handlers = {
           default_setup,
-          tsserver = function()
+          eslint = function()
+            local util = require('lspconfig.util')
+            require('lspconfig').eslint.setup({
+              root_dir = util.root_pattern('.git')(fname),
+            })
+          end,
+          ts_ls = function()
             local util = require('lspconfig.util')
 
-            require('lspconfig').tsserver.setup({
+            require('lspconfig').ts_ls.setup({
               root_dir = util.root_pattern('.git')(fname),
               capabilities = lsp_capabilities,
               init_options = { 
                 preferences = { 
-                  -- quotePreference = 'single',
                   quotePreference = 'double',
                   -- absolute breaks nest+jest (https://stackoverflow.com/questions/56703570/unable-to-run-tests-because-nest-cannot-find-a-module)
                   importModuleSpecifier = "relative",
                   importModuleSpecifierPreference = "relative",
                   importModuleSpecifierEnding = "auto",
+                },
+                host_info = "nvim",
+              },
+              settings = {
+                formatOptions = {
+                  enabled = true,
                 },
               },
               commands = {
@@ -119,9 +133,33 @@ return {
             require('lspconfig').rust_analyzer.setup({
               cargo = {
                 features = "all"
+              },
+              completion = {
+                autoimport = {
+                  enable = "true"
+                }
               }
             })
           end,
+          yamlls = function()
+            require('lspconfig').yamlls.setup({
+              settings = {
+                yaml = {
+                  schemas = {
+                    kubernetes = "k8s-*.yaml",
+                    ["http://json.schemastore.org/github-workflow"] = ".github/workflows/*",
+                    ["http://json.schemastore.org/github-action"] = ".github/action.{yml,yaml}",
+                    ["http://json.schemastore.org/ansible-stable-2.9"] = "roles/tasks/**/*.{yml,yaml}",
+                    ["http://json.schemastore.org/prettierrc"] = ".prettierrc.{yml,yaml}",
+                    ["http://json.schemastore.org/kustomization"] = "kustomization.{yml,yaml}",
+                    ["http://json.schemastore.org/chart"] = "Chart.{yml,yaml}",
+                    ["http://json.schemastore.org/circleciconfig"] = ".circleci/**/*.{yml,yaml}",
+                    ["https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json"] = "docker-compose*.{yml,yaml}",
+                  },
+                },
+              },
+            })
+          end
         },
       })
 

@@ -1,5 +1,3 @@
--- 1.1.25 started using this
--- still don't know if I like it
 return {
   'windwp/nvim-autopairs',
   name = 'autopairs',
@@ -9,7 +7,7 @@ return {
     if (not status) then return end
 
     autopairs.setup({
-      disable_filetype = { "TelescopePrompt" , "vim" },
+      disable_filetype = { "TelescopePrompt" , "vim", "lua" },
     })
   end
 }
